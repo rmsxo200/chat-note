@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found ❌</title>
+    <style>
+        body { background: #181818; margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+        #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+        #input:focus { outline: none; }
+        #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+        /*
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages > li { padding: 0.5rem 1rem; }
+        #messages > li:nth-child(odd) { background: #efefef; } /* 홀수 번째 자식인 요소만 적용 (짝수는 even) 
+        */
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+    
+        #messages li {
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border-radius: 18px;
+            max-width: 60%;
+            word-wrap: break-word;
+        }
+
+        /* 내가 보낸 메시지 */
+        #messages li.my-message {
+            background: #1e213f; /* 검푸른 배경 */
+            margin-left: auto; /* 오른쪽 정렬 */
+        }
+
+        /* 다른 사람이 보낸 메시지 */
+        #messages li.other-message {
+            background: #1F1F1F; /* 검은 배경 */
+            margin-right: auto; /* 왼쪽 정렬 */
+        }
+
+        /* 폭죽 캔버스 */
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworksCanvas"></canvas>  
+
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 서버에 연결하기 전에 사용자 이름을 먼저 입력받습니다.
+        let username = prompt('닉네임을 입력해 주세요!', '');
+        if(username == null || username == '') { // 이름이 빈칸인 경우
+            const randNum = Math.floor(Math.random() * 100) + 1; // 1 ~ 100
+            username = '익명' + String(randNum).padStart(3, '0');
+        }
+
+        // 이름 입력이 완료된 후 Socket.IO 서버에 연결을 시도합니다.
+        const socket = io();
+
+        // HTML 요소들을 JavaScript 변수로 가져옵니다.
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+
+        // 서버에 연결 성공했을떄 닉네임 입력받음
+        socket.on('connect', function() {
+            socket.emit('newUser', username); //새로운 유저가 왔다고 server에게 알림 -> server에서 on으로 수신
+        });
+
+        // 폼 제출(메시지 전송 버튼 클릭 또는 엔터 키) 이벤트를 감지합니다.
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // 폼 제출 시 기본 동작(페이지 새로고침)을 막습니다.
+            if (input.value) { // 입력 필드에 내용이 있을 경우
+                // 'chatMessage'라는 이벤트로 입력된 값을 서버에 보냅니다.
+                socket.emit('chatMessage', {
+                    user: username, // 닉네임
+                    msg: input.value // 메시지
+                });
+                input.value = ''; // 메시지를 보낸 후 입력 필드를 비웁니다.
+            }
+        });
+
+        // 서버로부터 'chatMessage' 이벤트가 도착하는 것을 감지합니다.
+        socket.on('chatMessage', (data) => {
+            const item = document.createElement('li'); // 새로운 'li' 요소를 만듭니다.
+            item.textContent = `[${data.user}] : ${data.msg}`; // 'li' 요소의 내용을 받은 메시지로 설정합니다.
+            item.style.color = data.color;  // 폰트 색상 변경
+
+            // 내가 보낸 메시지인지 확인 후 클래스를 추가
+            if (data.user === username) {
+                item.classList.add('my-message');
+            } else {
+                item.classList.add('other-message');
+            }
+
+            messages.appendChild(item); // 메시지 목록에 'li' 요소를 추가합니다.
+            window.scrollTo(0, document.body.scrollHeight); // 스크롤을 가장 아래로 내립니다.
+
+            // 특정 단어 나오면 폭죽 텍스트 추가
+            const celebrationKeywords = ['축하', '퇴근', '연차', '반차', '퇴사'];
+            if (celebrationKeywords.some(keyword => data.msg.includes(keyword))) {
+                const item = document.createElement('li'); 
+                item.textContent = "🎉🎉🎉";
+                messages.appendChild(item); 
+                window.scrollTo(0, document.body.scrollHeight);
+
+                setTimeout(() => {
+                    launchFireworks();
+                }, 500);
+            }
+        });
+
+        /* 서버에서 userState 이벤트 도착 감지 */
+        socket.on('userState', function(data) {
+            // 타입에 따라 적용할 클래스를 다르게 지정
+            
+            // 입장
+            if(data.type == 'in') { 
+                const item = document.createElement('li'); 
+                item.style.color = 'white';  // 텍스트 색 하양
+                item.textContent = data.message; 
+                messages.appendChild(item); // 메시지 목록에 'li' 요소를 추가합니다.
+                window.scrollTo(0, document.body.scrollHeight); // 스크롤을 가장 아래로 내립니다.
+            } 
+            
+            // 퇴장
+            if(data.type == 'out') { 
+                const item = document.createElement('li'); 
+                item.style.color = 'red';  // 텍스트 색 빨강
+                item.textContent = data.message; 
+                messages.appendChild(item); // 메시지 목록에 'li' 요소를 추가합니다.
+                window.scrollTo(0, document.body.scrollHeight); // 스크롤을 가장 아래로 내립니다.
+            }
+        });
+
+
+        /* 폭죽 파티클 관련 시작 */
+        // 캔버스 설정
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 파티클 클래스
+        class Particle {
+            constructor(x, y, vx, vy, color, life) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.gravity = 0.1;
+                this.size = Math.random() * 3 + 2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.life--;
+                this.vx *= 0.98;
+            }
+            
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 폭죽 클래스
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                this.colors = [
+                    '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', 
+                    '#f0932b', '#eb4d4b', '#6c5ce7', '#a29bfe',
+                    '#fd79a8', '#fdcb6e', '#e84393', '#00b894'
+                ];
+                this.explode();
+            }
+            
+            explode() {
+                const particleCount = 50 + Math.random() * 50;
+                const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const speed = Math.random() * 5 + 3;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    const life = 60 + Math.random() * 40;
+                    
+                    this.particles.push(new Particle(this.x, this.y, vx, vy, color, life));
+                }
+            }
+            
+            update() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const particle = this.particles[i];
+                    particle.update();
+                    
+                    if (particle.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            draw() {
+                this.particles.forEach(particle => particle.draw());
+            }
+            
+            isDead() {
+                return this.particles.length === 0;
+            }
+        }
+
+        // 폭죽 관리
+        let fireworks = [];
+        let isAnimating = false;
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const firework = fireworks[i];
+                firework.update();
+                firework.draw();
+                
+                if (firework.isDead()) {
+                    fireworks.splice(i, 1);
+                }
+            }
+            
+            if (fireworks.length > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                isAnimating = false;
+            }
+        }
+
+        // 폭죽 발사 함수
+        function launchFireworks() {            
+            // 여러 개의 폭죽을 순차적으로 발사
+            const fireworkCount = 5 + Math.random() * 5;
+            
+            for (let i = 0; i < fireworkCount; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
+                    
+                    fireworks.push(new Firework(x, y));
+                    
+                    if (!isAnimating) {
+                        isAnimating = true;
+                        animate();
+                    }
+                }, i * 200);
+            }
+        }
+        /* 폭죽 파티클 관련 끝 */
+    </script>
+</body>
+</html>

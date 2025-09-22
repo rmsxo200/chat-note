@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found ❌</title>
+</head>
+<body>
+    <form id="login-form">
+        <input type="password" id="password" placeholder="입장 구호를 외치세요." required>
+        <button type="submit">입장</button>
+    </form>
+    <div id="message"></div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const passwordInput = document.getElementById('password');
+        const messageDiv = document.getElementById('message');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // 폼의 기본 제출 동작(페이지 새로고침)을 막습니다.
+
+            const password = passwordInput.value;
+
+            try {
+                // fetch API를 사용해 서버의 /login 경로로 POST 요청을 보냅니다.
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // JSON 형식으로 데이터를 보낸다고 알립니다.
+                    },
+                    body: JSON.stringify({ password }) // JavaScript 객체를 JSON 문자열로 변환하여 보냅니다.
+                });
+
+                // 서버의 응답을 JSON 형식으로 파싱합니다.
+                const result = await response.json();
+
+                if (response.ok) { // HTTP 상태 코드가 200-299인 경우
+                    messageDiv.textContent = '입장 성공!';
+                    window.location.href = '/chat';  // 채팅화면 이동
+                } else {
+                    messageDiv.textContent = `입장 실패: ${result.message}`;
+                    messageDiv.style.color = 'red';
+                }
+            } catch (error) {
+                console.error('요청 중 오류 발생:', error);
+                messageDiv.textContent = '로그인 중 오류가 발생했습니다.';
+                messageDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
