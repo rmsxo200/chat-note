@@ -86,10 +86,12 @@
         form.addEventListener('submit', (e) => {
             e.preventDefault(); // 폼 제출 시 기본 동작(페이지 새로고침)을 막습니다.
             if (input.value) { // 입력 필드에 내용이 있을 경우
+                const encodedMsg = btoa(input.value); // base64 인코딩 (난독화)
+                
                 // 'chatMessage'라는 이벤트로 입력된 값을 서버에 보냅니다.
                 socket.emit('chatMessage', {
                     user: username, // 닉네임
-                    msg: input.value // 메시지
+                    msg: encodedMsg // 메시지
                 });
                 input.value = ''; // 메시지를 보낸 후 입력 필드를 비웁니다.
             }
@@ -98,7 +100,8 @@
         // 서버로부터 'chatMessage' 이벤트가 도착하는 것을 감지합니다.
         socket.on('chatMessage', (data) => {
             const item = document.createElement('li'); // 새로운 'li' 요소를 만듭니다.
-            item.textContent = `[${data.user}] : ${data.msg}`; // 'li' 요소의 내용을 받은 메시지로 설정합니다.
+            const decodedMsg = atob(data.msg); // base64 디코딩 (난독화)
+            item.textContent = `[${data.user}] : ${decodedMsg}`; // 'li' 요소의 내용을 받은 메시지로 설정합니다.
             item.style.color = data.color;  // 폰트 색상 변경
 
             // 내가 보낸 메시지인지 확인 후 클래스를 추가
@@ -112,7 +115,7 @@
             window.scrollTo(0, document.body.scrollHeight); // 스크롤을 가장 아래로 내립니다.
 
             // 특정 단어 나오면 폭죽 텍스트 추가
-            const celebrationKeywords = ['축하', '퇴근', '연차', '반차', '퇴사'];
+            const celebrationKeywords = ['축하', 'ㅊㅋ', '퇴근', '연차', '반차', '퇴사'];
             if (celebrationKeywords.some(keyword => data.msg.includes(keyword))) {
                 const item = document.createElement('li'); 
                 item.textContent = "🎉🎉🎉";
