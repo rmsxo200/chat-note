@@ -69,6 +69,11 @@
             username = '익명' + String(randNum).padStart(3, '0');
         }
 
+        let room = prompt('입장할 채팅방 이름을 입력해 주세요!');
+        if(room == null || room == '') {
+            room = '기본방'; // 방 이름이 없으면 '기본방'으로 설정
+        }
+
         // 이름 입력이 완료된 후 Socket.IO 서버에 연결을 시도합니다.
         const socket = io();
 
@@ -77,21 +82,26 @@
         const input = document.getElementById('input');
         const messages = document.getElementById('messages');
 
-        // 서버에 연결 성공했을떄 닉네임 입력받음
+        // 서버에 연결 성공하면 닉네임과 방 이름을 함께 보냅니다.
         socket.on('connect', function() {
-            socket.emit('newUser', username); //새로운 유저가 왔다고 server에게 알림 -> server에서 on으로 수신
+            //새로운 유저가 왔다고 server에게 알림 -> server에서 on으로 수신
+            socket.emit('joinRoom', {
+                user: username,
+                room: room
+            });
         });
 
         // 폼 제출(메시지 전송 버튼 클릭 또는 엔터 키) 이벤트를 감지합니다.
         form.addEventListener('submit', (e) => {
             e.preventDefault(); // 폼 제출 시 기본 동작(페이지 새로고침)을 막습니다.
             if (input.value) { // 입력 필드에 내용이 있을 경우
-                const encodedMsg = btoa(input.value); // base64 인코딩 (난독화)
+                const encodedMsg = xorBase64Encrypt(input.value); // 난독화
                 
                 // 'chatMessage'라는 이벤트로 입력된 값을 서버에 보냅니다.
                 socket.emit('chatMessage', {
                     user: username, // 닉네임
-                    msg: encodedMsg // 메시지
+                    msg: encodedMsg, // 메시지
+                    room: room // 채팅방 이름
                 });
                 input.value = ''; // 메시지를 보낸 후 입력 필드를 비웁니다.
             }
@@ -100,7 +110,7 @@
         // 서버로부터 'chatMessage' 이벤트가 도착하는 것을 감지합니다.
         socket.on('chatMessage', (data) => {
             const item = document.createElement('li'); // 새로운 'li' 요소를 만듭니다.
-            const decodedMsg = atob(data.msg); // base64 디코딩 (난독화)
+            const decodedMsg = xorBase64Decrypt(data.msg); // 난독화 복호화
             item.textContent = `[${data.user}] : ${decodedMsg}`; // 'li' 요소의 내용을 받은 메시지로 설정합니다.
             item.style.color = data.color;  // 폰트 색상 변경
 
@@ -150,6 +160,45 @@
                 window.scrollTo(0, document.body.scrollHeight); // 스크롤을 가장 아래로 내립니다.
             }
         });
+
+
+        /* 난독화를 위한 암호화 함수 시작 */
+        const xorKey = 'aaa%kiPsVkS@UC!5'
+
+        // XOR + Base64 암호화 함수
+        function xorBase64Encrypt(text) {
+            // 1단계: 텍스트를 UTF-8로 인코딩
+            const utf8Text = unescape(encodeURIComponent(text));
+            
+            // 2단계: XOR 암호화
+            let xorResult = '';
+            for (let i = 0; i < utf8Text.length; i++) {
+                const textChar = utf8Text.charCodeAt(i);
+                const keyChar = xorKey.charCodeAt(i % xorKey.length);
+                xorResult += String.fromCharCode(textChar ^ keyChar);
+            }
+            
+            // 3단계: Base64 인코딩
+            return btoa(xorResult);
+        }
+
+        // XOR + Base64 복호화 함수
+        function xorBase64Decrypt(encrypted) {
+            // 1단계: Base64 디코딩
+            const base64Decoded = atob(encrypted);
+            
+            // 2단계: XOR 복호화
+            let xorResult = '';
+            for (let i = 0; i < base64Decoded.length; i++) {
+                const encChar = base64Decoded.charCodeAt(i);
+                const keyChar = xorKey.charCodeAt(i % xorKey.length);
+                xorResult += String.fromCharCode(encChar ^ keyChar);
+            }
+            
+            // 3단계: UTF-8 디코딩
+            return decodeURIComponent(escape(xorResult));
+        }
+        /* 난독화를 위한 암호화 함수 끝 */
 
 
         /* 폭죽 파티클 관련 시작 */
