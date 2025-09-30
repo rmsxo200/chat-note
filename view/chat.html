@@ -43,7 +43,8 @@
 
         /* 폭죽 캔버스 */
         #fireworksCanvas {
-            position: absolute;
+            position: fixed; 
+            bottom: 0; /*bottom: 0을 추가하여 하단 고정 명시 */
             top: 0;
             left: 0;
             width: 100%;
@@ -126,9 +127,15 @@
 
             // 특정 단어 나오면 폭죽 텍스트 추가
             const celebrationKeywords = ['축하', 'ㅊㅋ', '퇴근', '연차', '반차', '퇴사'];
-            if (celebrationKeywords.some(keyword => data.msg.includes(keyword))) {
+            if (celebrationKeywords.some(keyword => decodedMsg.includes(keyword))) {
                 const item = document.createElement('li'); 
                 item.textContent = "🎉🎉🎉";
+                // 내가 보낸 메시지인지 확인 후 클래스를 추가
+                if (data.user === username) {
+                    item.classList.add('my-message');
+                } else {
+                    item.classList.add('other-message');
+                }
                 messages.appendChild(item); 
                 window.scrollTo(0, document.body.scrollHeight);
 
