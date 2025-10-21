@@ -24,6 +24,15 @@ https://nodejs.org/ko/download
 
 최초 실행되는 js파일은 package.json > main 부분에서 설정한다.
 
+
+node.js > jwt 사용
+npm install jsonwebtoken
+
+node.js > 환경변수 env 파일로 관리할수 있게함
+npm install dotenv
+
+
+
 ```
 =====================================================
 --------------------프로젝트 구조---------------------
