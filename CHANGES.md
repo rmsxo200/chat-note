@@ -113,6 +113,16 @@ React 분리 후 더 이상 사용되지 않는 파일과 코드를 정리하였
 | `view/` 디렉토리 | 내부 파일 전부 삭제되어 빈 디렉토리 제거 |
 | `public/` 디렉토리 | 정적 파일 서빙을 React(Vite)가 담당하여 불필요 |
 
+### Vite 기본 생성 파일 정리
+
+| 삭제 대상 | 이유 |
+|-----------|------|
+| `client/src/App.css` | 빈 파일 — `styles/App.css`에서 스타일 관리 |
+| `client/src/index.css` | 빈 파일 — `styles/App.css`에서 스타일 관리 |
+| `client/src/assets/react.svg` | Vite 기본 React 로고 — 미사용 |
+| `client/src/assets/` 디렉토리 | 빈 디렉토리 제거 |
+| `client/public/vite.svg` | Vite 기본 로고 — 미사용 |
+
 ### 삭제된 코드
 
 | 파일 | 삭제 내용 | 이유 |
