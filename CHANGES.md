@@ -178,6 +178,32 @@ npm run dev        # 개발 서버 실행 (포트 5173)
 
 ---
 
+## 프로덕션 모드 추가
+
+개발 시에는 터미널 2개(Express + Vite)가 필요했지만, 프로덕션에서는 **서버 1개로 통합** 실행할 수 있도록 변경하였습니다.
+
+### `app.js` 변경사항
+- **`NODE_ENV` 환경변수** 로 개발/프로덕션 모드 분기
+- **개발 모드** (`NODE_ENV=development`, 기본값): CORS 활성화, Vite 개발 서버와 분리 운영
+- **프로덕션 모드** (`NODE_ENV=production`): CORS 비활성화, `client/dist/` 정적 파일 서빙, SPA 라우팅(`{*path}` → `index.html`) 추가
+- **`path` 모듈 재추가**: 프로덕션에서 `client/dist/index.html` 경로 처리에 필요
+
+### `package.json` 스크립트 추가
+| 명령어 | 설명 |
+|--------|------|
+| `npm run dev` | 백엔드 개발 서버 실행 |
+| `npm run build` | React 프론트엔드 빌드 (`client/dist` 생성) |
+| `npm start` | 프로덕션 모드 통합 실행 (`NODE_ENV=production`) |
+
+### 실행 비교
+| 항목 | 개발 모드 | 프로덕션 모드 |
+|------|-----------|---------------|
+| 터미널 | 2개 (Express + Vite) | 1개 (Express만) |
+| 접속 주소 | `localhost:5173` | `localhost:3000` |
+| Hot Reload | O | X (빌드 필요) |
+
+---
+
 ## npm 보안 취약점 수정
 
 `npm audit`으로 발견된 총 7건의 취약점을 수정하였습니다.

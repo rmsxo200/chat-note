@@ -93,13 +93,15 @@ cd ..
 
 설치되는 패키지: `react`, `react-dom`, `react-router-dom`, `socket.io-client`
 
-### 5. 실행
+### 5. 실행 방법 선택
 
-터미널 2개를 열어서 각각 실행합니다.
+#### 방법 A: 개발 모드 (터미널 2개)
+
+코드 수정 시 자동 반영(Hot Reload)되어 개발에 적합합니다.
 
 **터미널 1 — 백엔드 (포트 3000)**
 ```bash
-node app.js
+npm run dev
 ```
 
 **터미널 2 — 프론트엔드 (포트 5173)**
@@ -108,9 +110,37 @@ cd client
 npm run dev
 ```
 
-### 6. 접속
+접속: http://localhost:5173
 
-브라우저에서 http://localhost:5173 접속
+#### 방법 B: 프로덕션 모드 (터미널 1개)
+
+React를 빌드하여 Express 서버 1개로 통합 실행합니다.
+
+```bash
+npm run build        # React 빌드 (client/dist 생성)
+npm start            # 프로덕션 서버 실행
+```
+
+접속: http://localhost:3000
+
+### 개발 vs 프로덕션 비교
+
+| 항목 | 개발 모드 | 프로덕션 모드 |
+|------|-----------|---------------|
+| 터미널 | 2개 (백엔드 + Vite) | 1개 (Express만) |
+| 접속 주소 | `localhost:5173` | `localhost:3000` |
+| Hot Reload | O | X (빌드 필요) |
+| 용도 | 코드 수정/디버깅 | 실제 배포/운영 |
+
+---
+
+## npm 스크립트
+
+| 명령어 | 설명 |
+|--------|------|
+| `npm run dev` | 백엔드 개발 서버 실행 (포트 3000) |
+| `npm run build` | React 프론트엔드 빌드 (client/dist) |
+| `npm start` | 프로덕션 모드 통합 실행 (포트 3000) |
 
 ---
 

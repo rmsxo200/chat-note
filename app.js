@@ -15,8 +15,12 @@
 const express = require("express");           // 웹 서버를 구축하기 위한 Express 프레임워크
 const http = require("http");                 // HTTP 서버를 생성하기 위한 Node.js 내장 모듈
 const { Server } = require("socket.io");      // 실시간 양방향 통신을 위한 Socket.IO 서버
+const path = require("path");                 // 파일 경로를 다루기 위한 Node.js 내장 모듈
 const cors = require("cors");                 // CORS 미들웨어 (React 클라이언트 허용)
 const jwt = require("jsonwebtoken");              // JWT 모듈 추가
+
+// 실행 모드 (development / production)
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 const JWT_SECRET = "KkKkK00@*&#@753TYEye#^^-=00"; // 비밀키 설정
 
@@ -26,10 +30,9 @@ const server = http.createServer(app);
 
 // HTTP 서버에 Socket.IO를 연결하여 실시간 통신 기능을 추가합니다.
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173", // React 개발 서버 허용
-    methods: ["GET", "POST"]
-  }
+  cors: NODE_ENV === "development"
+    ? { origin: "http://localhost:5173", methods: ["GET", "POST"] } // 개발: Vite 허용
+    : undefined  // 프로덕션: 같은 origin이므로 CORS 불필요
 });
 
 // 서버가 실행될 포트 번호를 설정합니다.
@@ -50,7 +53,9 @@ process.on('unhandledRejection', (reason, promise) => {
 // =========================================================================
 
 // ================== 미들웨어 설정 ==================
-app.use(cors({ origin: "http://localhost:5173" })); // React 개발 서버 CORS 허용
+if (NODE_ENV === "development") {
+  app.use(cors({ origin: "http://localhost:5173" })); // 개발: React 개발 서버 CORS 허용
+}
 app.use(express.json());                      // 요청 본문(JSON)을 파싱하는 미들웨어
 
 // ================== 라우터 설정 ==================
@@ -80,6 +85,18 @@ io.use((socket, next) => {
 
 // ================== 소켓 이벤트 설정 ==================
 require("./socket/chatSocket")(io);          // chatSocket.js 불러와서 io 전달 (소켓 이벤트 처리)
+
+// ================== 프로덕션: React 정적 파일 서빙 ==================
+if (NODE_ENV === "production") {
+  // React 빌드 파일 서빙 (client/dist)
+  app.use(express.static(path.join(__dirname, "client/dist")));
+
+  // API 라우트가 아닌 모든 요청은 React의 index.html로 전달 (SPA 라우팅)
+  // Express 5에서는 "*" 대신 named wildcard "{*path}" 사용
+  app.get("{*path}", (req, res) => {
+    res.sendFile(path.join(__dirname, "client/dist/index.html"));
+  });
+}
 
 // ================== 404 Not Found 핸들러 ==================
 app.use((req, res, next) => {
@@ -112,5 +129,5 @@ app.use((err, req, res, next) => {
 
 // ================== 서버 실행 ==================
 server.listen(port, () => {                   // 지정된 포트에서 서버 실행
-  console.log(`listening on *:${port}`);      // 서버 실행 확인 메시지 출력
+  console.log(`[${NODE_ENV}] listening on *:${port}`);
 });
