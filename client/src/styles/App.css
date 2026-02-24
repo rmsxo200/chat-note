@@ -1,0 +1,182 @@
+/* ===== 전역 스타일 ===== */
+body {
+  background: #181818;
+  margin: 0;
+  padding-bottom: 3rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #fff;
+}
+
+/* ===== 로그인 페이지 ===== */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 300px;
+}
+
+#login-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+#login-form input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+}
+
+#login-form button {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#login-form button:hover {
+  background: #444;
+}
+
+#message {
+  margin-top: 1rem;
+}
+
+/* ===== 방 선택 페이지 ===== */
+.room-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#room-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 340px;
+  text-align: center;
+}
+
+#room-form h2 {
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+}
+
+#room-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+#room-form input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+}
+
+#room-form button {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#room-form button:hover {
+  background: #444;
+}
+
+/* ===== 채팅 페이지 ===== */
+#form {
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.25rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 3rem;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+}
+
+#input {
+  border: none;
+  padding: 0 1rem;
+  flex-grow: 1;
+  border-radius: 2rem;
+  margin: 0.25rem;
+}
+
+#input:focus {
+  outline: none;
+}
+
+#form > button {
+  background: #333;
+  border: none;
+  padding: 0 1rem;
+  margin: 0.25rem;
+  border-radius: 3px;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ===== 메시지 목록 ===== */
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#messages li {
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border-radius: 18px;
+  max-width: 60%;
+  word-wrap: break-word;
+}
+
+/* 내가 보낸 메시지 */
+#messages li.my-message {
+  background: #1e213f;
+  margin-left: auto;
+}
+
+/* 다른 사람이 보낸 메시지 */
+#messages li.other-message {
+  background: #1f1f1f;
+  margin-right: auto;
+}
+
+/* ===== 폭죽 캔버스 ===== */
+#fireworksCanvas {
+  position: fixed;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}

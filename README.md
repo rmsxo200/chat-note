@@ -68,3 +68,23 @@ function generateRandomKey() {
 	return result;
 }
 ```
+     
+  
+---
+---
+> 위 설명은 node.js 만 사용한 경우  
+> 아래는 claude를 사용하여 프론트로직 react로 분리  
+---
+---
+
+```
+  CHANGES.md — 변경사항 상세 설명 (구조, 페이지별 설명, 실행 방법, 흐름 비교)
+```
+# 실행 방법
+
+### 터미널 1: 백엔드
+  `npm install && node app.js`
+
+### 터미널 2: 프론트엔드
+  `cd client && npm run dev`
+  브라우저에서 http://localhost:5173 접속
