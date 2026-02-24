@@ -100,11 +100,30 @@ client/
 
 ---
 
-## 기존 파일 (유지)
+## 삭제된 파일 및 코드
 
-### `view/main.html`, `view/chat.html`
-- 기존 HTML 파일은 삭제하지 않고 유지 (참고용)
-- 백엔드에서 더 이상 서빙하지 않음
+React 분리 후 더 이상 사용되지 않는 파일과 코드를 정리하였습니다.
+
+### 삭제된 파일/디렉토리
+
+| 삭제 대상 | 이유 |
+|-----------|------|
+| `view/main.html` | React `LoginPage.jsx`로 완전 대체 |
+| `view/chat.html` | React `ChatPage.jsx`로 완전 대체 |
+| `view/` 디렉토리 | 내부 파일 전부 삭제되어 빈 디렉토리 제거 |
+| `public/` 디렉토리 | 정적 파일 서빙을 React(Vite)가 담당하여 불필요 |
+
+### 삭제된 코드
+
+| 파일 | 삭제 내용 | 이유 |
+|------|-----------|------|
+| `app.js` | `express.static("public")` 미들웨어 | `public/` 디렉토리 삭제로 불필요 |
+| `app.js` | 404 HTML 응답 (인라인 HTML 템플릿) | 프론트 분리로 API 서버는 JSON 응답으로 통일 |
+| `controller/chatController.js` | `getIndex()` 함수 | HTML 서빙 불필요 |
+| `controller/chatController.js` | `getChat()` 함수 + Referer 검증 | HTML 서빙 불필요, 인증은 클라이언트에서 처리 |
+| `controller/chatController.js` | `path` 모듈 import | 파일 경로 처리가 불필요해져 제거 |
+| `route/chatRoutes.js` | `GET /` 라우트 | HTML 서빙 불필요 |
+| `route/chatRoutes.js` | `GET /chat` 라우트 | HTML 서빙 불필요 |
 
 ---
 

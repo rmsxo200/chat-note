@@ -103,27 +103,10 @@ app.use((err, req, res, next) => {
     console.error('Error Stack:', err.stack); // 스택은 서버 콘솔에만 출력
     console.error('================================================================');
     
-    // 2. 클라이언트에게는 간소화된 응답 전송 (사용자용)
-    if (status === 404) {
-        // 404는 HTML로 응답하여 JSON이 화면에 출력되는 것을 방지
-        return res.status(404).send(`
-            <!DOCTYPE html>
-            <html lang="ko">
-            <head><meta charset="UTF-8"><title>404 Not Found</title></head>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
-                <h1>404</h1>
-                <p>페이지를 찾을 수 없습니다: ${req.originalUrl}</p>
-                <a href="/">메인으로 돌아가기</a>
-            </body>
-            </html>
-        `);
-    }
-
-    // 그 외 오류 (401, 403, 500 등)는 JSON 응답을 보내되, 메시지만 포함
+    // 2. 클라이언트에게는 간소화된 JSON 응답 전송 (사용자용)
     res.status(status).json({
         success: false,
-        // 💡 핵심 수정: 스택 대신 사용자 친화적인 메시지만 전달
-        message: err.message || '서버 내부 오류가 발생했습니다. (Internal Server Error)', 
+        message: err.message || '서버 내부 오류가 발생했습니다. (Internal Server Error)',
     });
 });
 
