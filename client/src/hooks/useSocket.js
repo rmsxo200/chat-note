@@ -7,6 +7,8 @@ export default function useSocket(token, username, room) {
   const [messages, setMessages] = useState([]);
   const [connected, setConnected] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const drawStrokeHandlerRef = useRef(null);
+  const drawNotifyHandlerRef = useRef(null);
 
   useEffect(() => {
     if (!token || !room) return;
@@ -41,6 +43,11 @@ export default function useSocket(token, username, room) {
           isMine: data.user === username,
         },
       ]);
+    });
+
+    socket.on('drawStroke', (data) => {
+      drawStrokeHandlerRef.current?.(data);
+      drawNotifyHandlerRef.current?.(data);
     });
 
     socket.on('userState', (data) => {
@@ -91,5 +98,20 @@ export default function useSocket(token, username, room) {
     [username, room]
   );
 
-  return { messages, connected, authError, sendMessage, sendImage };
+  const sendDrawStroke = useCallback(
+    (strokeData) => {
+      socketRef.current?.emit('drawStroke', { ...strokeData, room });
+    },
+    [room]
+  );
+
+  const registerDrawStrokeHandler = useCallback((fn) => {
+    drawStrokeHandlerRef.current = fn;
+  }, []);
+
+  const registerDrawNotifyHandler = useCallback((fn) => {
+    drawNotifyHandlerRef.current = fn;
+  }, []);
+
+  return { messages, connected, authError, sendMessage, sendImage, sendDrawStroke, registerDrawStrokeHandler, registerDrawNotifyHandler };
 }

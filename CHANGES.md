@@ -236,3 +236,86 @@ npm run dev        # 개발 서버 실행 (포트 5173)
 루트:   found 0 vulnerabilities
 client: found 0 vulnerabilities
 ```
+  
+---
+
+## [3차] 실시간 공유 캔버스 기능 추가
+
+### 추가된 CSS 클래스
+
+| 클래스 | 설명 |
+|---|---|
+| `.shared-canvas-header` | 공유 캔버스 헤더 영역 — `border-bottom: 1px solid #333` |
+| `.shared-canvas-title` | 헤더 타이틀 — `font-weight: 600`, `color: #fff` |
+| `.shared-canvas-hint` | 안내 문구 — `font-size: 0.75rem`, `color: #4ecdc4` |
+
+### 탭 구조 변경
+
+```
+sidebar-strip
+  ├── ✏️  내 그림 그리기 (DrawingCanvas — 기존)
+  └── 🎨  공유 캔버스   (SharedCanvas — 신규)
+```
+
+**탭 토글 로직**
+- 닫힌 상태에서 탭 클릭 → 사이드바 열고 해당 탭 활성화
+- 같은 탭 재클릭 → 사이드바 닫힘
+- 다른 탭 클릭 → 탭 전환 (사이드바 유지)
+
+### 신규 파일
+
+| 파일 | 설명 |
+|---|---|
+| `client/src/components/SharedCanvas.jsx` | 실시간 공유 캔버스 컴포넌트 |
+
+### 소켓 이벤트 흐름
+
+| 이벤트 | 방향 | 페이로드 |
+|---|---|---|
+| `drawStroke` (획) | Client → Server → 다른 참여자 | `{ type: 'stroke', from, to, color, size, tool }` |
+| `drawStroke` (지우기) | Client → Server → 다른 참여자 | `{ type: 'clear' }` |
+
+- 서버: `socket.broadcast.to(room)` — 송신자 제외, 같은 방 전체 브로드캐스트
+- 로컬 그리기 즉시 반영 + 원격 수신 즉시 반영 (양방향 실시간)
+
+---
+
+## [4차] 공유 캔버스 탭 반짝임 알림 추가
+
+### 기능 설명
+다른 참여자가 공유 캔버스에 그림을 그리면, 해당 탭을 보고 있지 않은 참여자의 🎨 아이콘이 반짝이며 알림을 표시합니다.
+
+### 동작 조건
+
+| 조건 | 결과 |
+|---|---|
+| 상대방이 획을 그림 + 내가 공유 캔버스 탭을 보고 있지 않음 | 🎨 아이콘 반짝임 시작 |
+| 이미 공유 캔버스 탭을 열고 있는 중 | 반짝임 없음 (이미 확인 중) |
+| 🎨 아이콘을 클릭해 탭 열기 | 반짝임 즉시 중단 |
+| `type: 'clear'` 이벤트 수신 | 반짝임 없음 (그리기 동작이 아님) |
+
+### 변경된 파일
+
+#### `client/src/hooks/useSocket.js`
+- `drawNotifyHandlerRef` 추가 — 알림 전용 핸들러 ref
+- `drawStroke` 수신 시 `drawStrokeHandlerRef`(캔버스 렌더링)와 `drawNotifyHandlerRef`(알림) 동시 호출
+- `registerDrawNotifyHandler` 함수 반환
+
+#### `client/src/pages/ChatPage.jsx`
+- `hasNewDrawing` 상태 추가
+- `sidebarOpenRef`, `activeTabRef` — 콜백 내부에서 최신 상태 참조용 ref
+- `useEffect`로 알림 핸들러 등록: `type === 'stroke'` + 공유 탭 미확인 시 `hasNewDrawing = true`
+- `handleTabClick('shared')` 시 `hasNewDrawing = false` (확인 처리)
+- 🎨 버튼에 `.blinking` 클래스 조건부 적용
+
+#### `client/src/styles/App.css`
+```css
+@keyframes tab-notify {
+  0%, 100% { border-color: transparent; background: transparent; box-shadow: none; }
+  50%       { border-color: #4ecdc4; background: #1a3a38; box-shadow: 0 0 8px #4ecdc4; }
+}
+
+.sidebar-tab-btn.blinking {
+  animation: tab-notify 0.9s ease-in-out infinite;
+}
+```

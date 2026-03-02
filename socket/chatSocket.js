@@ -31,6 +31,11 @@ module.exports = (io) => { // 모듈 export (io를 매개변수로 받음)
       });
     });
 
+    // 공유 캔버스: 드로우 스트로크 이벤트 (송신자를 제외한 같은 방 전체에 브로드캐스트)
+    socket.on("drawStroke", (data) => {
+      socket.broadcast.to(socket.room).emit("drawStroke", data);
+    });
+
     // 클라이언트가 'chatMessage'라는 이벤트로 메시지를 보낼 때를 감지합니다.
     socket.on("chatMessage", (data) => {
       const user = socket.user;

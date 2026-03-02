@@ -42,7 +42,9 @@ chat-note/
 │       │   ├── MessageList.jsx
 │       │   ├── MessageItem.jsx
 │       │   ├── MessageInput.jsx
-│       │   └── Fireworks.jsx   # 축하 불꽃놀이 효과
+│       │   ├── DrawingCanvas.jsx   # 개인 그림 그리기 (채팅으로 전송)
+│       │   ├── SharedCanvas.jsx    # 실시간 공유 캔버스
+│       │   └── Fireworks.jsx       # 축하 불꽃놀이 효과
 │       ├── hooks/
 │       │   └── useSocket.js    # Socket.IO 커스텀 훅
 │       ├── utils/
@@ -157,6 +159,104 @@ npm start            # 프로덕션 서버 실행
 
 ---
 
+## 왼쪽 사이드바 메뉴
+
+채팅 화면 왼쪽에 항상 표시되는 탭 스트립이 있습니다.
+아이콘을 클릭하면 해당 도구 패널이 열리고, 같은 아이콘을 다시 클릭하면 닫힙니다.
+
+| 아이콘 | 기능 | 설명 |
+|--------|------|------|
+| ✏️ | 내 그림 그리기 | 혼자 그린 뒤 채팅으로 이미지 전송 |
+| 🎨 | 공유 캔버스 | 채팅방 참여자 전원과 실시간으로 함께 그리기 |
+
+### 반응형 동작
+
+| 환경 | 탭 위치 | 패널 열리는 방향 |
+|------|---------|-----------------|
+| 데스크톱 (769px~) | 화면 왼쪽 세로 바 | 오른쪽으로 400px 펼쳐짐 |
+| 모바일 (768px 이하) | 화면 하단 가로 바 | 위쪽으로 55vh 올라옴 |
+
+---
+
+## ✏️ 개인 그림 그리기 (`DrawingCanvas`)
+
+혼자 그린 그림을 채팅 메시지로 전송하는 기능입니다.
+
+### 도구
+
+| 도구 | 설명 |
+|------|------|
+| 색상 팔레트 | 9가지 색상 선택 (흰/빨/주/노/초/하/보/분/검) |
+| 지우개 | 브러시 크기의 3배 굵기로 지우기 |
+| 브러시 크기 | 슬라이더로 1~30px 조절 |
+
+### 버튼
+
+| 버튼 | 동작 |
+|------|------|
+| 전체 지우기 | 캔버스를 초기 배경색으로 리셋 |
+| 닫기 | 패널 닫기 (그림 내용 유지되지 않음) |
+| 전송 | 현재 캔버스를 PNG 이미지로 채팅에 전송 후 패널 닫기 |
+
+### 구현 파일
+
+- [`client/src/components/DrawingCanvas.jsx`](client/src/components/DrawingCanvas.jsx) — 컴포넌트
+- 캔버스 크기: 600×400 (CSS `max-width: 100%`로 화면에 맞게 축소)
+- 마우스 및 터치 이벤트 모두 지원 (`onTouchStart/Move/End`, `touch-action: none`)
+- 전송 시 `canvas.toDataURL('image/png')`로 Base64 이미지 생성 → Socket.IO `chatMessage` 이벤트로 전송
+
+---
+
+## 🎨 공유 캔버스 (`SharedCanvas`)
+
+채팅방 참여자 전원이 **동시에** 같은 캔버스 위에 그림을 그리는 기능입니다.
+한 명이 획을 그으면 나머지 참여자의 화면에 **즉시** 반영됩니다.
+
+### 도구
+
+✏️ 개인 그리기와 동일한 도구 (색상 팔레트, 지우개, 브러시 크기 슬라이더)
+
+### 버튼
+
+| 버튼 | 동작 |
+|------|------|
+| 전체 지우기 | 내 화면 초기화 + 모든 참여자 화면도 동시에 초기화 |
+| 닫기 | 패널 닫기 (캔버스 상태는 서버에 저장되지 않음) |
+
+> **주의**: 전송 버튼 없음 — 그리는 즉시 실시간으로 공유됩니다.
+
+### 실시간 동기화 구조
+
+```
+내가 그리기 → 로컬 캔버스에 즉시 렌더링
+            → Socket.IO drawStroke 이벤트 전송
+              └→ 서버 broadcast (송신자 제외)
+                  └→ 다른 참여자 수신 → 각자 캔버스에 렌더링
+```
+
+### 소켓 이벤트
+
+| 이벤트 | 페이로드 | 설명 |
+|--------|---------|------|
+| `drawStroke` (획) | `{ type: 'stroke', from: {x,y}, to: {x,y}, color, size, tool }` | 선 한 구간 전송 |
+| `drawStroke` (지우기) | `{ type: 'clear' }` | 전체 지우기 동기화 |
+
+### 반짝임 알림
+
+다른 참여자가 공유 캔버스에 그림을 그리면, 현재 해당 탭을 열지 않은 참여자의 🎨 아이콘이 **반짝이며 알림**을 표시합니다.
+
+- 알림 조건: `type === 'stroke'` 수신 + 공유 캔버스 탭 미확인 상태
+- 알림 해제: 🎨 탭 아이콘 클릭 시 즉시 소등
+
+### 구현 파일
+
+- [`client/src/components/SharedCanvas.jsx`](client/src/components/SharedCanvas.jsx) — 컴포넌트
+- [`client/src/hooks/useSocket.js`](client/src/hooks/useSocket.js) — `sendDrawStroke`, `registerDrawStrokeHandler`, `registerDrawNotifyHandler`
+- [`socket/chatSocket.js`](socket/chatSocket.js) — `drawStroke` 이벤트 브로드캐스트
+
+---
+
 ## 참고
 
 - 변경 이력 및 상세 설명: [CHANGES.md](./CHANGES.md)
+- CSS 작업 이력: [CHANGES_CSS.md](./CHANGES_CSS.md)

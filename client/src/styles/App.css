@@ -54,6 +54,23 @@ body {
   background: #2a4a49;
 }
 
+@keyframes tab-notify {
+  0%, 100% {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+  50% {
+    border-color: #4ecdc4;
+    background: #1a3a38;
+    box-shadow: 0 0 8px #4ecdc4, 0 0 16px rgba(78, 205, 196, 0.4);
+  }
+}
+
+.sidebar-tab-btn.blinking {
+  animation: tab-notify 0.9s ease-in-out infinite;
+}
+
 /* ===== 사이드바 패널 (열고 닫힘) ===== */
 .sidebar-panel {
   width: 0;
@@ -250,6 +267,26 @@ body {
   border-radius: 8px;
   display: block;
   margin-top: 4px;
+}
+
+/* ===== 공유 캔버스 헤더 ===== */
+.shared-canvas-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #333;
+}
+
+.shared-canvas-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.shared-canvas-hint {
+  font-size: 0.75rem;
+  color: #4ecdc4;
 }
 
 /* ===== 그림 그리기 패널 (사이드바 내) ===== */
