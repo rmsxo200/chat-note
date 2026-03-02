@@ -85,8 +85,7 @@ export default function DrawingCanvas({ onSend, onClose }) {
   };
 
   return (
-    <div className="drawing-overlay">
-      <div className="drawing-panel">
+    <div className="drawing-panel">
         <div className="drawing-toolbar">
           <div className="color-palette">
             {COLORS.map((c) => (
@@ -152,7 +151,6 @@ export default function DrawingCanvas({ onSend, onClose }) {
             전송
           </button>
         </div>
-      </div>
     </div>
   );
 }

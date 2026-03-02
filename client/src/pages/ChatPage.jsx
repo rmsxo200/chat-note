@@ -10,7 +10,7 @@ export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const fireworksRef = useRef(null);
-  const [showDrawing, setShowDrawing] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const token = localStorage.getItem('jwtToken');
   const username = localStorage.getItem('username');
@@ -48,17 +48,27 @@ export default function ChatPage() {
   return (
     <>
       <Fireworks ref={fireworksRef} />
-      <MessageList messages={messages} onCelebration={handleCelebration} />
-      {showDrawing && (
-        <DrawingCanvas
-          onSend={sendImage}
-          onClose={() => setShowDrawing(false)}
-        />
-      )}
-      <MessageInput
-        onSend={sendMessage}
-        onToggleDrawing={() => setShowDrawing((prev) => !prev)}
-      />
+      <div className="chat-layout">
+        <div className="sidebar-strip">
+          <button
+            className={`sidebar-tab-btn${sidebarOpen ? ' active' : ''}`}
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            title="그림 그리기"
+          >
+            ✏️
+          </button>
+        </div>
+        <div className={`sidebar-panel${sidebarOpen ? ' open' : ''}`}>
+          <DrawingCanvas
+            onSend={sendImage}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </div>
+        <div className="chat-main">
+          <MessageList messages={messages} onCelebration={handleCelebration} />
+          <MessageInput onSend={sendMessage} />
+        </div>
+      </div>
     </>
   );
 }

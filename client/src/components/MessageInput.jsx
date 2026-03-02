@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function MessageInput({ onSend, onToggleDrawing }) {
+export default function MessageInput({ onSend }) {
   const [text, setText] = useState('');
 
   const handleSubmit = (e) => {
@@ -13,14 +13,6 @@ export default function MessageInput({ onSend, onToggleDrawing }) {
 
   return (
     <form id="form" onSubmit={handleSubmit}>
-      <button
-        type="button"
-        id="draw-toggle-btn"
-        onClick={onToggleDrawing}
-        title="그림 그리기"
-      >
-        ✏️
-      </button>
       <input
         id="input"
         autoComplete="off"
