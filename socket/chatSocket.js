@@ -40,6 +40,7 @@ module.exports = (io) => { // 모듈 export (io를 매개변수로 받음)
       io.to(room).emit("chatMessage", { // 메시지를 보낸 클라이언트가 속한 방에만 메시지를 보냅니다.
         user: user,
         msg: data.msg,
+        msgType: data.msgType, // 메시지 타입 전달 (text | image)
         color: userColors.get(user) // 메시지 내용에 폰트색상 추가
       });
     });

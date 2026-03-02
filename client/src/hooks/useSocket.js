@@ -28,11 +28,13 @@ export default function useSocket(token, username, room) {
     });
 
     socket.on('chatMessage', (data) => {
-      const decodedMsg = xorBase64Decrypt(data.msg);
+      const isImage = data.msgType === 'image';
+      const decodedMsg = isImage ? data.msg : xorBase64Decrypt(data.msg);
       setMessages((prev) => [
         ...prev,
         {
           type: 'chat',
+          msgType: isImage ? 'image' : 'text',
           user: data.user,
           msg: decodedMsg,
           color: data.color,
@@ -75,5 +77,19 @@ export default function useSocket(token, username, room) {
     [username, room]
   );
 
-  return { messages, connected, authError, sendMessage };
+  const sendImage = useCallback(
+    (dataUrl) => {
+      if (socketRef.current && dataUrl) {
+        socketRef.current.emit('chatMessage', {
+          user: username,
+          msg: dataUrl,
+          msgType: 'image',
+          room,
+        });
+      }
+    },
+    [username, room]
+  );
+
+  return { messages, connected, authError, sendMessage, sendImage };
 }

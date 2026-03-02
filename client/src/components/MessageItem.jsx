@@ -8,6 +8,23 @@ export default function MessageItem({ message }) {
     );
   }
 
+  // 이미지 메시지
+  if (message.msgType === 'image') {
+    return (
+      <li className={message.isMine ? 'my-message' : 'other-message'}>
+        <span style={{ color: message.color, fontSize: '0.8rem' }}>
+          [{message.user}]
+        </span>
+        <br />
+        <img
+          src={message.msg}
+          alt="그림"
+          className="chat-image"
+        />
+      </li>
+    );
+  }
+
   // 축하 키워드 체크
   const celebrationKeywords = ['축하', 'ㅊㅋ', '퇴근', '연차', '반차', '퇴사'];
   const hasCelebration = celebrationKeywords.some((kw) =>

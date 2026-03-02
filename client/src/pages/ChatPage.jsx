@@ -1,14 +1,16 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useSocket from '../hooks/useSocket';
 import MessageList from '../components/MessageList';
 import MessageInput from '../components/MessageInput';
+import DrawingCanvas from '../components/DrawingCanvas';
 import Fireworks from '../components/Fireworks';
 
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const fireworksRef = useRef(null);
+  const [showDrawing, setShowDrawing] = useState(false);
 
   const token = localStorage.getItem('jwtToken');
   const username = localStorage.getItem('username');
@@ -24,7 +26,7 @@ export default function ChatPage() {
     }
   }, [token, username, room, navigate]);
 
-  const { messages, authError, sendMessage } = useSocket(token, username, room);
+  const { messages, authError, sendMessage, sendImage } = useSocket(token, username, room);
 
   useEffect(() => {
     if (authError) {
@@ -47,7 +49,16 @@ export default function ChatPage() {
     <>
       <Fireworks ref={fireworksRef} />
       <MessageList messages={messages} onCelebration={handleCelebration} />
-      <MessageInput onSend={sendMessage} />
+      {showDrawing && (
+        <DrawingCanvas
+          onSend={sendImage}
+          onClose={() => setShowDrawing(false)}
+        />
+      )}
+      <MessageInput
+        onSend={sendMessage}
+        onToggleDrawing={() => setShowDrawing((prev) => !prev)}
+      />
     </>
   );
 }
