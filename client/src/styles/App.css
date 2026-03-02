@@ -387,3 +387,66 @@ body {
   pointer-events: none;
   z-index: 1000;
 }
+
+/* ===== 모바일 반응형 (768px 이하) ===== */
+@media (max-width: 768px) {
+  /* 세로 방향으로 전환 */
+  .chat-layout {
+    flex-direction: column;
+  }
+
+  /* 채팅 영역: 상단 */
+  .chat-main {
+    order: 1;
+    flex: 1;
+    min-height: 0;
+    min-width: unset;
+  }
+
+  /* 그리기 패널: 중단 (세로 슬라이드) */
+  .sidebar-panel {
+    order: 2;
+    width: 100%;
+    height: auto;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    border-right: none;
+    border-top: 1px solid #333;
+  }
+
+  .sidebar-panel.open {
+    width: 100%;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  /* 탭 스트립: 하단 바 */
+  .sidebar-strip {
+    order: 3;
+    width: 100%;
+    height: 48px;
+    flex-direction: row;
+    padding: 0 0.5rem;
+    justify-content: flex-start;
+    border-right: none;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
+  }
+
+  /* 그리기 도구 모음 줄바꿈 허용 */
+  .drawing-toolbar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  /* 액션 버튼 꽉 채우기 */
+  .drawing-actions {
+    justify-content: stretch;
+  }
+
+  .draw-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
